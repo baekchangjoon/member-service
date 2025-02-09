@@ -1,6 +1,5 @@
 package com.example.member.domain;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,8 +17,10 @@ public class Member {
     private Long id;
 
     private String memberName;
+    private Long age;
     private String email;
     private String phoneNumber;
+    private Boolean isAdult;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

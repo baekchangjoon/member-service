@@ -20,6 +20,11 @@ public class MemberController {
         return memberService.createMember(member);
     }
 
+    @PostMapping("/member")
+    public Member createMemberWithAge(@RequestBody Member member) {
+        return memberService.createMemberWithAge(member);
+    }
+
     @GetMapping("/{id}")
     public Member getMember(@PathVariable Long id) {
         return memberService.getMember(id);

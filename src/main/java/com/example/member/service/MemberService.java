@@ -30,6 +30,16 @@ public class MemberService {
         return saved;
     }
 
+    public Member createMemberWithAge(Member member) {
+        if (member.getAge() > 15)
+            member.setIsAdult(true);
+        else
+            member.setIsAdult(false);
+
+        Member saved = memberRepository.save(member);
+        return saved;
+    }
+
     @Cacheable(value = "memberCache", key = "#id")
     public Member getMember(Long id) {
         return memberRepository.findById(id).orElse(null);

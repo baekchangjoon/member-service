@@ -4,16 +4,18 @@ import com.example.member.domain.Member;
 import com.example.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
 
     @Mock
@@ -43,6 +45,18 @@ class MemberServiceTest {
         assertNotNull(created);
         verify(kafkaTemplate, times(1)).send(eq("member-created-topic"), any(Member.class));
         verify(integrationService, times(1)).createDefaultLineForMember(member);
+    }
+
+    @Test
+    void testCreateMember_isAdultFalse() {
+        Member member = new Member();
+        member.setMemberName("홍길동");
+        member.setAge(10L);
+        when(memberRepository.save(any(Member.class))).thenReturn(member);
+
+        Member created = memberService.createMemberWithAge(member);
+        assertNotNull(created);
+        assertFalse(member.getIsAdult());
     }
 
     @Test
