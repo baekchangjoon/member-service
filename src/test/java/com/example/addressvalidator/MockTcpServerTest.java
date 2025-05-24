@@ -1,52 +1,95 @@
 package com.example.addressvalidator;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-// BugFix, This testcase doesn't work.
-// MockTcpServer started well, But Testcase can't catch the server started.
 public class MockTcpServerTest {
 
-    private MockTcpServer mockTcpServer;
-    private Thread serverThread;
+    private static final int PORT = 9999;
+    private static MockTcpServer server;
+    private static Thread serverThread;
 
-    @BeforeEach
-    public void setUp() {
-        mockTcpServer = new MockTcpServer(9999);
-        mockTcpServer.addStub("Hello Server", "Hello Client\n");
-        serverThread = new Thread(() -> mockTcpServer.start());
+    @BeforeAll
+    static void setUp() {
+        server = new MockTcpServer(PORT);
+        server.addStub("Hello Server", "Hello Client\n");
+        server.addStub("Seoul", "가능\n");
+        server.addStub("Busan", "불가능\n");
+
+        serverThread = new Thread(() -> server.start());
         serverThread.start();
-        // 서버가 띄워지길 잠시 대기 (간단히 0.5초 정도)
+
+        // 서버가 시작될 때까지 잠시 대기
         try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
     }
 
-    @AfterEach
-    public void tearDown() throws InterruptedException {
-        // 실제 코드라면 서버 종료 로직 필요
-        // 예) serverSocket.close()를 위해, MockTcpServer에 stop() 메서드 구현 가능
+    @AfterAll
+    static void tearDown() {
         serverThread.interrupt();
-        serverThread.join();
     }
 
     @Test
-    public void testMockTcpServerResponse() throws IOException {
-        try (Socket clientSocket = new Socket("localhost", 9999);
-             BufferedReader reader =
-                 new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-             BufferedWriter writer =
-                 new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
+    void testHelloServer() throws IOException {
+        try (Socket socket = new Socket("localhost", PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
 
             writer.write("Hello Server\n");
             writer.flush();
 
             String response = reader.readLine();
             assertEquals("Hello Client", response);
+        }
+    }
+
+    @Test
+    void testSeoul() throws IOException {
+        try (Socket socket = new Socket("localhost", PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+
+            writer.write("Seoul\n");
+            writer.flush();
+
+            String response = reader.readLine();
+            assertEquals("가능", response);
+        }
+    }
+
+    @Test
+    void testBusan() throws IOException {
+        try (Socket socket = new Socket("localhost", PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+
+            writer.write("Busan\n");
+            writer.flush();
+
+            String response = reader.readLine();
+            assertEquals("불가능", response);
+        }
+    }
+
+    @Test
+    void testUnknownRequest() throws IOException {
+        try (Socket socket = new Socket("localhost", PORT);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
+
+            writer.write("Unknown City\n");
+            writer.flush();
+
+            String response = reader.readLine();
+            assertEquals("No matching stub", response);
         }
     }
 }

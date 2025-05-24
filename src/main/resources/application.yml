@@ -3,15 +3,19 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:memberdb;DB_CLOSE_ON_EXIT=FALSE;MODE=MYSQL
-    username: sa
-    password:
-    driverClassName: org.h2.Driver
+    url: jdbc:mysql://127.0.0.1:3306/memberdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   kafka:
     bootstrap-servers: localhost:9092
